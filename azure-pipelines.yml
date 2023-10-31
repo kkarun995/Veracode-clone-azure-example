@@ -20,3 +20,14 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
+    
+
+- task: Veracode@3
+  inputs:
+    ConnectionDetailsSelection: 'Service Connection'
+    AnalysisService: 'veracode-api'
+    veracodeAppProfile: 'azure-demo-arun'
+    version: '$(build.buildNumber)'
+    filepath: '$(System.DefaultWorkingDirectory)/target/verademo.war'
+    sandboxName: 'build'
+    maximumWaitTime: '360'
