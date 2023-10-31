@@ -1,0 +1,41 @@
+trigger: none
+
+schedules:
+- cron: "0 1 * * *"
+  displayName: Nightly Veracide Security Scan
+  branches:
+    include:
+    - FeatureBranch
+
+
+resources:
+  repositories:
+    - repository: Veracode-YML-Pipeline-Templates
+      type: git
+      name: VeracodeYMLPipelineTemplates/VeracodeYMLPipelineTemplates
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    goals: 'package'
+
+- template: veracode_sca_scan.yml@Veracode-YML-Pipeline-Templates
+  parameters:
+    veracode_sca_token: '$(SRCCLR_API_TOKEN)'
+
+- template: veracode_sandbox_scan.yml@Veracode-YML-Pipeline-Templates
+  parameters:
+    veracode_profilename: 'Verademo AzureDevops'
+    veracode_api_id: '$(veracode_api_id)'
+    veracode_api_key: '$(veracode_api_key)'
+    veracode_file_path: '$(System.DefaultWorkingDirectory)/target/verademo.war'
+    veracode_sandboxname: '${Build.SourceBranchName}'
+    veracode_fail_build_on_policy: 'false'

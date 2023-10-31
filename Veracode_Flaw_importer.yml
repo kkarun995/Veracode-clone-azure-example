@@ -1,0 +1,26 @@
+trigger: none
+
+schedules:
+- cron: "0 * * * *"
+  displayName: Hourly new flaws check
+  branches:
+    include:
+    - main
+    - FeatureBranch
+  always: true
+
+resources:
+  repositories:
+    - repository: Veracode-YML-Pipeline-Templates
+      type: git
+      name: VeracodeYMLPipelineTemplates/VeracodeYMLPipelineTemplates
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- template: veracode_flaw_importer.yml@Veracode-YML-Pipeline-Templates
+  parameters:
+    veracode_profilename: 'Verademo AzureDevops'
+    veracode_api_id: '$(veracode_api_id)'
+    veracode_api_key: '$(veracode_api_key)'

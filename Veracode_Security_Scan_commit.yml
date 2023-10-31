@@ -1,0 +1,41 @@
+trigger:
+  branches:
+    include: [FeatureBranch]
+  paths:
+    exclude: ["pipeline-baseline-file.json"]
+  tags:
+    include:
+      - commit*
+
+resources:
+  repositories:
+    - repository: Veracode-YML-Pipeline-Templates
+      type: git
+      name: VeracodeYMLPipelineTemplates/VeracodeYMLPipelineTemplates
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'package'
+
+- template: veracode_sca_scan.yml@Veracode-YML-Pipeline-Templates
+  parameters:
+    veracode_sca_token: '$(SRCCLR_API_TOKEN)'
+
+
+- template: veracode_pipeline_scan.yml@Veracode-YML-Pipeline-Templates
+  parameters:
+    veracode_api_id: '$(veracode_api_id)'
+    veracode_api_key: '$(veracode_api_key)'
+    veracode_file_path: '$(System.DefaultWorkingDirectory)/target/verademo.war'
+    veracode_fail_build_on_findings: 'false'
